@@ -12,7 +12,7 @@
   * Mac: same deal as make - [install Xcode command line tools](https://developer.apple.com/xcode/features/)
   * Windows: recommend using [MinGW](http://www.mingw.org/)
 * SDL2
-  * Download both SDL source code and runtime binaries [SDL Download](https://www.libsdl.org/download-2.0.php)
+  * Download both SDL source code and runtime binaries - [SDL Download](https://www.libsdl.org/download-2.0.php)
 
 ## Basic Build Instructions
 
@@ -20,3 +20,6 @@
 2. Make a build directory in the top level directory: `mkdir build && cd build`
 3. Compile: `cmake .. && make`
 4. Run it: `./FinalProject`.
+
+## Image
+* Spaceship image is from [PNG MART](http://www.pngmart.com/image/26964)
