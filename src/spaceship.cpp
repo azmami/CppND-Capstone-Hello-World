@@ -4,51 +4,62 @@
 #include <thread>
 #include <deque>
 
-Spaceship::Spaceship(std::size_t screen_width,
-                     std::size_t screen_height)
+/**
+ * Constructor for Spaceship.
+ * It initializes the radius, the first position, velocity.
+ */ 
+Spaceship::Spaceship()
 {
-   x_boundary_min_ = 0;
-   x_boundary_max_ = screen_width - 50;
-   y_boundary_min_ = 0;
-   y_boundary_max_ = screen_height - 50;
-
+   SetRadius(25);
+   SetCenterPosition(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+   velo_ = Velocity(0, 1);
 }
 
+/**
+ * This updates the position of spaceship as well as positions of fired missiles.
+ */ 
 void Spaceship::Update()
 {
-   pos_x_ += velocity_x_;
-   pos_x_ = std::clamp(pos_x_, x_boundary_min_, x_boundary_max_);
-   if (pos_x_ == x_boundary_min_ || pos_x_ == x_boundary_max_)
-   {
-      velocity_x_ = 0;
-   }
+   // Update the position
+   pos_.x += velo_.x;
+   pos_.y += velo_.y;
 
-   pos_y_ += velocity_y_;
-   pos_y_ = std::clamp(pos_y_, y_boundary_min_, y_boundary_max_);   
-   if (pos_y_ == y_boundary_min_ || pos_y_ == y_boundary_max_)
+   // Adjusting the position after adding velocity to avoid spaceship being out of view
+   pos_.x = std::clamp((int) pos_.x, GetRadius(), SCREEN_WIDTH - GetRadius());
+   if (pos_.x <= GetRadius() || pos_.x >= SCREEN_WIDTH - GetRadius())
    {
-      velocity_y_ = 0;
+      velo_.x = 0;
    }
    
-   // update missiles' position
-   std::for_each(missiles_.begin(), missiles_.end(), [this](SDL_Point &p)
+   pos_.y = std::clamp((int) pos_.y, GetRadius(), SCREEN_HEIGHT - GetRadius());
+   if (pos_.y <= GetRadius() || pos_.y >= SCREEN_HEIGHT - GetRadius())
    {
-      p.y = p.y - 5;
+      velo_.y = 0;
+   }
+
+   // update missiles' position
+   std::for_each(missiles_.begin(), missiles_.end(), [](Missile &m)
+   {
+      m.Update();
    });
 
-   // if the missiles are off the screen (i.e. y < 0), remove it from deque 
-   auto keep = std::remove_if(missiles_.begin(), missiles_.end(), [](SDL_Point &p) {
-      return p.y < 0;
+   // if the missiles are out of the screen (i.e. y < 0), remove them from deque 
+   auto missiles_to_remove = std::remove_if(missiles_.begin(), missiles_.end(), [](Missile &m) {
+      return m.pos_.y < 0 || !m.IsAlive();
    });
-   missiles_.erase(keep, missiles_.end());
+
+   missiles_.erase(missiles_to_remove, missiles_.end());
 }
 
-void Spaceship::Fire(int pos_x, int pos_y)
+/**
+ * If a user presses space key, this function is called.
+ * It's limited that the total missile count shown on the window at the same time is only 5.
+ */ 
+void Spaceship::Fire()
 {
-   missiles_.push_back(SDL_Point {pos_x, pos_y});
+   if (missiles_.size() < 5) 
+   {
+      missiles_.push_back(Missile(pos_.x, pos_.y - 10));
+   }
 }
 
-bool Spaceship::IsAlive()
-{
-   return alive_;
-}

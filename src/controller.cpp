@@ -5,38 +5,61 @@
 #include <algorithm>
 #include "SDL.h"
 
-void Controller::ChangeAngle(Spaceship &spaceship, Spaceship::KeyEvent input) const
+/**
+ * MoveX is called when either left or right key is pressed.
+ * If it's left key, it decrements the X velocity by 2.
+ * If it's right key, it increments the X velocity by 2.
+ * After decrementing or incrementing the X velocity, it gets clamp value so that it does not exceed speed limit.
+ */ 
+void Controller::MoveX(Spaceship &spaceship, Spaceship::KeyEvent input) const
 {
    if (input == Spaceship::KeyEvent::kLeft)
    {
-      spaceship.velocity_x_ = spaceship.velocity_x_ - 2;
+      spaceship.velo_.x -= 2;
    }
    else
    {
-      spaceship.velocity_x_ = spaceship.velocity_x_ + 2;
+      spaceship.velo_.x += 2;
    }
-   spaceship.velocity_x_ = std::clamp(spaceship.velocity_x_, Spaceship::MAX_VELOCITY * -1, Spaceship::MAX_VELOCITY);
+   // If x velocity exceeds the max velocity, replace velo_.x with MAX_VELOCITY value
+   spaceship.velo_.x = std::clamp((int) spaceship.velo_.x, Spaceship::MAX_VELOCITY * -1, Spaceship::MAX_VELOCITY);
 }
 
-void Controller::Move(Spaceship &spaceship, Spaceship::KeyEvent input) const
+/**
+ * MoveY is called when either up or down key is pressed.
+ * If it's up key, it decrements the Y velocity by 2.
+ * If it's down key, it increments the Y velocity by 2.
+ * After decrementing or incrementing the Y velocity, it gets clamp value so that it does not exceed speed limit.
+ */ 
+void Controller::MoveY(Spaceship &spaceship, Spaceship::KeyEvent input) const
 {
    if (input == Spaceship::KeyEvent::kUp)
    {
-      spaceship.velocity_y_ = spaceship.velocity_y_ - 2;
+      spaceship.velo_.y -= 2;
    }
    else
    {
-      spaceship.velocity_y_ = spaceship.velocity_y_ + 2;
+      spaceship.velo_.y += 2;
    }
-   spaceship.velocity_y_ = std::clamp(spaceship.velocity_y_, Spaceship::MAX_VELOCITY * -1, Spaceship::MAX_VELOCITY);
+   // If y velocity exceeds the max velocity, replace velo_.y with MAX_VELOCITY value
+   spaceship.velo_.y = std::clamp((int) spaceship.velo_.y, Spaceship::MAX_VELOCITY * -1, Spaceship::MAX_VELOCITY);
 }
 
-void Controller::Fire(Spaceship &spaceship, int pos_x, int pos_y) const
+/**
+ * Fire is called when space key is pressed.
+ * It fires the missile by using Fire function of Spaceship class.
+ */ 
+void Controller::Fire(Spaceship &spaceship) const
 {
-   spaceship.Fire(pos_x, pos_y);
+   spaceship.Fire();
 }
 
-void Controller::HandleInput(bool &running, Spaceship &spaceship) const
+/**
+ * This function handles inputs from Keyboard and quit event.
+ * If quit event happens, running boolean flag gets updated to false.
+ * This function accepts up, down, left, right, space and C keyboard events. 
+ */ 
+void Controller::HandleInput(bool &running, bool &continue_triggered, Spaceship &spaceship) const
 {
    SDL_Event e;
    while (SDL_PollEvent(&e))
@@ -50,25 +73,25 @@ void Controller::HandleInput(bool &running, Spaceship &spaceship) const
          switch(e.key.keysym.sym)
          {
             case SDLK_UP:
-               Move(spaceship, Spaceship::KeyEvent::kUp);
-               std::cout << "up\n";
-            break;
+               MoveY(spaceship, Spaceship::KeyEvent::kUp);
+               break;
             case SDLK_DOWN:
-               Move(spaceship, Spaceship::KeyEvent::kDown);
-               std::cout << "down\n";
-            break;
+               MoveY(spaceship, Spaceship::KeyEvent::kDown);
+               break;
             case SDLK_LEFT:
-               ChangeAngle(spaceship, Spaceship::KeyEvent::kLeft);
-               std::cout << "left\n";
-            break;
+               MoveX(spaceship, Spaceship::KeyEvent::kLeft);
+               break;
             case SDLK_RIGHT:
-               ChangeAngle(spaceship, Spaceship::KeyEvent::kRight);
-               std::cout << "right\n";
-            break;
+               MoveX(spaceship, Spaceship::KeyEvent::kRight);
+               break;
             case SDLK_SPACE:
-               std::cout << "space\n";
-               Fire(spaceship, spaceship.pos_x_, spaceship.pos_y_);
-            break;
+               if (spaceship.IsAlive())
+                 Fire(spaceship);
+               break;
+            case SDLK_c:
+               if (!spaceship.IsAlive())
+                  continue_triggered = true;
+               break;
          }
       }
    }

@@ -3,25 +3,27 @@
 
 #include "renderer.h"
 #include "controller.h"
-#include "spaceship.h"
-#include "asteroid.h"
+#include "gameobject.h"
+#include "enemy.h"
 #include <deque>
-
 
 class Game
 {
 public:
-   Game(std::size_t screen_width, std::size_t screen_height);
+   Game();
+   void Initialize();
    void Run(Controller &controller, 
          Renderer &renderer,
          std::size_t target_frame_duration);
    void Update();
+   void CollisionDetected(Spaceship &s);
+   void AddScore(int score);
+   int GetScore();
 
 private:
    Spaceship spaceship_;
-   std::deque<Asteroid> asteroids_;
-   std::size_t screen_width_;
-   std::size_t screen_height_;
+   std::deque<Enemy> enemies_;
+   int score_;
 };
 
 #endif
